@@ -1,0 +1,2 @@
+// run kafka
+fig up -d
