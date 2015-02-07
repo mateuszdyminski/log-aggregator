@@ -69,7 +69,7 @@ wsServer.on('request', function(request) {
     var connection = request.accept('echo-protocol', request.origin);
     connection.connectionId = ++ids;
     console.log((new Date()) + ' Connection ' + connection.connectionId + ' accepted.');
-    
+
     connections.push(connection);
 
     // Send identifier to client
@@ -100,8 +100,10 @@ wsServer.on('request', function(request) {
 
 // kafka
 consumer.on('message', function(message) {
-    console.log('Receiving log from kafka: ' + message);
+    var buff = new Buffer(message)
+    console.log(JSON.stringify(message).value);
+    console.log('Receiving log from kafka: ' + buff.toString('utf8'));
     for(var conn in connections) {
-        sendMsg(conn.connectionId, message);
+        sendMsg(conn.connectionId, message.value);
     }
 });

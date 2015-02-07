@@ -33,8 +33,6 @@
     function appendMessage(source, message) {
         var messageEl = document.createElement('li');
         var sourceEl = document.createElement('span');
-        sourceEl.appendChild(document.createTextNode(source));
-        messageEl.appendChild(sourceEl);
         messageEl.appendChild(document.createTextNode(message));
         if (source === id) {
             messageEl.className = 'own';
