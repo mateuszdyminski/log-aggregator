@@ -1,0 +1,40 @@
+zookeeper:
+  image: wurstmeister/zookeeper
+  ports:
+    - "2181"
+kafka:
+  image: wurstmeister/kafka:0.8.2.0
+  ports:
+    - "9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.2.198
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+web1:
+  build: web
+  ports:
+    - "127.0.0.1:8001:8001"
+  links:
+    - kafka:kafka
+  environment:
+     PORT: "8001"
+web2:
+  build: web
+  ports:
+    - "127.0.0.1:8002:8002"
+  links:
+    - kafka:kafka
+  environment:
+     PORT: "8002"
+backend:
+  build: backedNodejs
+  ports:
+    - "127.0.0.1:8080:8080"
+  links:
+    - zookeeper:zk
+frontend:
+  build: frontend
+  ports:
+    - "127.0.0.1:9001:9001"

@@ -1,24 +1,11 @@
 # Websockets client project
 
-
 ## Preparations
-
-### Requirements
-
-- NodeJS & npm
-
-### Installation of required packages
-
-Inside of directory:
-- npm install -g bower
-- npm install
-- bower install
+- go build -o server
 
 ### Run
-- gulp serve
+./server
 
-
-## Web sockets
 
 ### Web socket initialization
 

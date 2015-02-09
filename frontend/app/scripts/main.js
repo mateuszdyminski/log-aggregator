@@ -1,7 +1,7 @@
 /* jshint devel:true */
 
 (function(chat) {
-    var socket = new WebSocket('ws://localhost:8080/', 'echo-protocol');
+    var socket = new WebSocket('ws://127.0.0.1:8080/', 'echo-protocol');
     var id = -1;
 
     socket.onopen = function(event) {
@@ -32,21 +32,14 @@
 
     function appendMessage(source, message) {
         var messageEl = document.createElement('li');
-        var sourceEl = document.createElement('span');
-        messageEl.appendChild(document.createTextNode(message));
-        if (source === id) {
-            messageEl.className = 'own';
-        }
+        var hostEl = document.createElement('span');
+        hostEl.appendChild(document.createTextNode(message.key));
+        messageEl.appendChild(hostEl);
+
+        messageEl.appendChild(document.createTextNode(message.value));
+
         document.getElementById('chat').appendChild(messageEl);
     }
-
-    chat.send = function() {
-        if (socket != null) {
-            var text = document.getElementById('message').value;
-            document.getElementById('message').value = '';
-            socket.send(text);
-        }
-    };
 })(this.chat = {});
 
 document.getElementById('message').onkeydown = function(event) {
