@@ -105,3 +105,12 @@ consumer.on('message', function(message) {
         sendMsg(conn.connectionId, message);
     }
 });
+
+consumer.on('error', function(error) {
+    console.log('Receiving error from kafka: ' + error);
+});
+
+
+process.on('uncaughtException', function (err) {
+    console.log(err);
+});
