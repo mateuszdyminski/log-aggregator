@@ -1,7 +1,7 @@
 /* jshint devel:true */
 
 (function(chat) {
-    var socket = new WebSocket('ws://127.0.0.1:8080/', 'echo-protocol');
+    var socket = new WebSocket('ws://127.0.0.1:8080/wsapi/ws');
     var id = -1;
 
     socket.onopen = function(event) {
@@ -9,14 +9,9 @@
     };
 
     socket.onmessage = function(msg) {
-        var message = JSON.parse(msg.data);
-        if ('identifier' === message.type) {
-            id = message.data;
-        }
-        if ('message' === message.type) {
-            appendMessage(message.source, message.data);
-        }
         console.log(msg);
+        var message = JSON.parse(msg.data);
+        appendMessage(message);
     }
 
     socket.onclose = function() {
@@ -30,13 +25,13 @@
         socket = undefined;
     }
 
-    function appendMessage(source, message) {
+    function appendMessage(message) {
         var messageEl = document.createElement('li');
         var hostEl = document.createElement('span');
-        hostEl.appendChild(document.createTextNode(message.key));
+        hostEl.appendChild(document.createTextNode(message.Key));
         messageEl.appendChild(hostEl);
 
-        messageEl.appendChild(document.createTextNode(message.value));
+        messageEl.appendChild(document.createTextNode(message.Message));
 
         document.getElementById('chat').appendChild(messageEl);
     }

@@ -9,32 +9,37 @@ kafka:
   links:
     - zookeeper:zk
   environment:
-    KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.2.198
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 web1:
   build: web
   ports:
-    - "127.0.0.1:8001:8001"
+    - "8001:8001"
   links:
     - kafka:kafka
   environment:
-     PORT: "8001"
+    PORT: "8001"
+    TOPIC: "topic1"
 web2:
   build: web
   ports:
-    - "127.0.0.1:8002:8002"
+    - "8002:8002"
   links:
     - kafka:kafka
   environment:
-     PORT: "8002"
+    PORT: "8002"
+    TOPIC: "topic1"
 backend:
-  build: backedNodejs
+  build: backend
   ports:
-    - "127.0.0.1:8080:8080"
+    - "8080:8080"
   links:
+    - kafka:kafka
     - zookeeper:zk
+  environment:
+    TOPIC: "topic1"
 frontend:
   build: frontend
   ports:
-    - "127.0.0.1:9001:9001"
+    - "9001:9001"

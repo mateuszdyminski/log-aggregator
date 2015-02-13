@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/mateuszdyminski/glog"
@@ -46,16 +47,25 @@ func SetupLogToKafka(topic, kafkaHost string) {
 
 	client, err := sarama.NewClient("client_id", []string{kafkaHost + ":9092"}, sarama.NewClientConfig())
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %+v \n", err)
+		select {
+		case <-time.After(10 * time.Second):
+			go SetupLogToKafka(topic, kafkaHost)
+		}
+		return
 	} else {
 		fmt.Println("> connected")
 	}
 
 	producer, err := sarama.NewProducer(client, nil)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %+v \n", err)
+		select {
+		case <-time.After(10 * time.Second):
+			go SetupLogToKafka(topic, kafkaHost)
+		}
+		return
 	}
-	// defer producer.Close()
 
 	glog.SetChannel(p.c.Logs)
 
@@ -64,6 +74,8 @@ func SetupLogToKafka(topic, kafkaHost string) {
 			select {
 			case log := <-p.c.Logs:
 				producer.Input() <- &sarama.MessageToSend{Topic: topic, Key: sarama.StringEncoder(host), Value: sarama.StringEncoder(log)}
+				producer.Input() <- &sarama.MessageToSend{Topic: "all", Key: sarama.StringEncoder(host), Value: sarama.StringEncoder(log)}
+				fmt.Println("Log sent\n")
 			case err := <-producer.Errors():
 				fmt.Printf("kafkaHost: %s, host: %s, topic: %s, err: %+v \n", kafkaHost, host, topic, err.Err)
 			}

@@ -21,7 +21,7 @@ func init() {
 	}
 
 	flag.StringVar(&kafka, "k", "kafka", "kafka host")
-	flag.StringVar(&topic, "t", "test", "kafka topic")
+	flag.StringVar(&topic, "topic", "test", "kafka topic")
 	flag.IntVar(&port, "p", 8001, "web port")
 }
 
@@ -31,12 +31,8 @@ func main() {
 	fmt.Printf("Kafka topic: %s\n", topic)
 	fmt.Printf("Web port: %d\n", port)
 
-	select {
-	case <-time.After(30 * time.Second):
-		SetupLogToKafka(topic, kafka)
-	}
+	SetupLogToKafka(topic, kafka)
 
-	Info("Starting")
 	http.HandleFunc("/", dummyHandler)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 
