@@ -1,7 +1,16 @@
 /* jshint devel:true */
 
 (function(chat) {
-    var socket = new WebSocket('ws://127.0.0.1:8080/wsapi/ws');
+    var loc = window.location, new_uri;
+    if (loc.protocol === "https:") {
+        new_uri = "wss:";
+    } else {
+        new_uri = "ws:";
+    }
+    new_uri += "//" + loc.host;
+    new_uri += loc.pathname + "/wsapi/ws";
+
+    var socket = new WebSocket(new_uri);
     var id = -1;
 
     socket.onopen = function(event) {
