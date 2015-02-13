@@ -8,7 +8,7 @@
         new_uri = "ws:";
     }
     new_uri += "//" + loc.host;
-    new_uri += loc.pathname + "/wsapi/ws";
+    new_uri += loc.pathname + "wsapi/ws";
 
     var socket = new WebSocket(new_uri);
     var id = -1;
