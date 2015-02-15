@@ -32,7 +32,7 @@ This project was created at micro-hacathlon during web-socket workshop at Avaus 
 Install log generator dependencies - first time only 
 
 ```
-export GOPATH=$PWD/web && go get github.com/Shopify/sarama github.com/mateuszdyminski/glog
+export GOPATH=$PWD/web && go get github.com/bitly/go-nsq github.com/mateuszdyminski/glog
 ```
 
 Install frontend dependencies - first time only

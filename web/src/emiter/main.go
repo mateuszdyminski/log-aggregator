@@ -9,9 +9,8 @@ import (
 )
 
 var (
-	kafka string
-	topic string
-	port  int
+	nsqHost string
+	port    int
 )
 
 func init() {
@@ -20,22 +19,24 @@ func init() {
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&kafka, "k", "kafka", "kafka host")
-	flag.StringVar(&topic, "topic", "test", "kafka topic")
+	flag.StringVar(&nsqHost, "nsqHost", "nsq-worker", "nsq host")
 	flag.IntVar(&port, "p", 8001, "web port")
 }
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Kafka host: %s\n", kafka)
-	fmt.Printf("Kafka topic: %s\n", topic)
+	fmt.Printf("Nsq host: %s\n", nsqHost)
 	fmt.Printf("Web port: %d\n", port)
 
-	SetupLogToKafka(topic, kafka)
+	SetupLogNsq(nsqHost)
 
 	http.HandleFunc("/", dummyHandler)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
-
+	fmt.Printf("Web port 1")
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+	fmt.Printf("Web port 2")
 }
 
 func dummyHandler(rw http.ResponseWriter, req *http.Request) {

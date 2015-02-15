@@ -1,23 +1,23 @@
-zookeeper:
-  image: wurstmeister/zookeeper
+nsqMaster:
+  image: nsqio/nsq
   ports:
-    - "2181"
-kafka:
-  image: wurstmeister/kafka:0.8.2.0
+    - "4160"
+    - "4161"
+  command: /nsqlookupd
+nsqWorker:
+  image: nsqio/nsq
   ports:
-    - "9092"
+    - "4150:4150"
+    - "4151:4151"
   links:
-    - zookeeper:zk
-  environment:
-    KAFKA_ADVERTISED_HOST_NAME: 192.168.2.198
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
+    - nsqMaster:nsqMaster
+  command: /nsqd --broadcast-address=172.17.42.1 --lookupd-tcp-address=nsqMaster:4160
 web1:
   build: web
   ports:
     - "8001:8001"
   links:
-    - kafka:kafka
+    - nsqWorker:nsqWorker
   environment:
     PORT: "8001"
     TOPIC: "topic1"
@@ -26,7 +26,7 @@ web2:
   ports:
     - "8002:8002"
   links:
-    - kafka:kafka
+    - nsqWorker:nsqWorker
   environment:
     PORT: "8002"
     TOPIC: "topic1"
@@ -35,8 +35,7 @@ backend:
   ports:
     - "8080:8080"
   links:
-    - kafka:kafka
-    - zookeeper:zk
+    - nsqMaster:nsqMaster
   environment:
     TOPIC: "topic1"
 frontend:

@@ -3,88 +3,52 @@ package main
 import (
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/bitly/go-nsq"
 	"github.com/mateuszdyminski/glog"
 )
 
-type Config struct {
-	Logs     chan []byte
-	Brokers  []string
-	Topic    string
-	ClientId string
-	Host     string
-}
+func SetupLogNsq(nsqHost string) {
 
-type KafkaProducer struct {
-	c Config
-}
+	cfg := nsq.NewConfig()
 
-type logger struct {
-	p *KafkaProducer
-}
-
-var mu sync.Mutex
-var l *logger
-var p *KafkaProducer
-
-func SetupLogToKafka(topic, kafkaHost string) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	c := Config{
-		Logs: make(chan []byte, 1000),
-	}
-
-	p := KafkaProducer{c}
-
-	host, err := os.Hostname()
-	if err != nil {
-		host = "localhost"
-	}
-
-	client, err := sarama.NewClient("client_id", []string{kafkaHost + ":9092"}, sarama.NewClientConfig())
+	// make the producer
+	producer, err := nsq.NewProducer(nsqHost+":4150", cfg)
 	if err != nil {
 		fmt.Printf("Error: %+v \n", err)
 		select {
 		case <-time.After(10 * time.Second):
-			go SetupLogToKafka(topic, kafkaHost)
+			go SetupLogNsq(nsqHost)
 		}
 		return
 	} else {
 		fmt.Println("> connected")
 	}
 
-	producer, err := sarama.NewProducer(client, nil)
+	host, err := os.Hostname()
 	if err != nil {
-		fmt.Printf("Error: %+v \n", err)
-		select {
-		case <-time.After(10 * time.Second):
-			go SetupLogToKafka(topic, kafkaHost)
-		}
-		return
+		host = "localhost"
 	}
 
-	glog.SetChannel(p.c.Logs)
+	logsChannel := make(chan []byte, 1000)
+	glog.SetChannel(logsChannel)
 
-	go func(kafkaHost, topic, host string) {
+	go func(nsqHost, host string) {
 		for {
 			select {
-			case log := <-p.c.Logs:
-				producer.Input() <- &sarama.MessageToSend{Topic: topic, Key: sarama.StringEncoder(host), Value: sarama.StringEncoder(log)}
-				producer.Input() <- &sarama.MessageToSend{Topic: "all", Key: sarama.StringEncoder(host), Value: sarama.StringEncoder(log)}
-				fmt.Println("Log sent\n")
-			case err := <-producer.Errors():
-				fmt.Printf("kafkaHost: %s, host: %s, topic: %s, err: %+v \n", kafkaHost, host, topic, err.Err)
+			case log := <-logsChannel:
+				if err = producer.Publish(host, log); err != nil {
+					fmt.Printf("Error: %+v \n", err)
+				}
+				if err = producer.Publish("all", log); err != nil {
+					fmt.Printf("Error: %+v \n", err)
+				}
+
+				fmt.Println("Logs sent\n")
 			}
 		}
-	}(kafkaHost, topic, host)
-}
-
-func KafkaEnabled() bool {
-	return glog.CustomChannel()
+	}(nsqHost, host)
 }
 
 func Info(args ...interface{}) {
@@ -105,26 +69,18 @@ func Warningf(format string, args ...interface{}) {
 
 func Error(args ...interface{}) {
 	glog.ErrorDepth(1, args...)
-	mu.Lock()
-	defer mu.Unlock()
 }
 
 func Errorf(format string, args ...interface{}) {
 	glog.ErrorDepth(1, fmt.Sprintf(format, args...))
-	mu.Lock()
-	defer mu.Unlock()
 }
 
 func Fatal(format string, args ...interface{}) {
 	glog.FatalDepth(1, args...)
-	mu.Lock()
-	defer mu.Unlock()
 }
 
 func Fatalf(format string, args ...interface{}) {
 	glog.FatalDepth(1, fmt.Sprintf(format, args...))
-	mu.Lock()
-	defer mu.Unlock()
 }
 
 func V(level glog.Level) glog.Verbose {

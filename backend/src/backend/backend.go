@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	hostname   string
-	kafkaHost  string
-	kafkaTopic string
-	port       int
-	waitTime   int
+	hostname string
+	nsqHost  string
+	nsqTopic string
+	port     int
+	waitTime int
 )
 
 func init() {
@@ -25,20 +25,20 @@ func init() {
 
 	flag.StringVar(&hostname, "h", "localhost", "hostname")
 	flag.IntVar(&port, "p", 8080, "port")
-	flag.StringVar(&kafkaHost, "kafka", "kafka", "kafka host")
-	flag.StringVar(&kafkaTopic, "topic", "test", "kafka topic")
+	flag.StringVar(&nsqHost, "nsqHost", "nsq-master", "nsq host")
+	flag.StringVar(&nsqTopic, "nsqTopic", "all", "nsq topic")
 	flag.IntVar(&waitTime, "wait", 0, "wait time")
 }
 
 func main() {
 	flag.Parse()
 
-	fmt.Printf("KafkaHost: %s, topic: %s\n", kafkaHost, kafkaTopic)
+	fmt.Printf("NsqHost: %s, topic: %s\n", nsqHost, nsqTopic)
 
 	// run websocket hub
 	go h.run()
 
-	go client.run(&h, kafkaTopic, kafkaHost)
+	go client.run(&h, nsqTopic, nsqHost)
 
 	http.HandleFunc("/wsapi/ws", serveWs)
 	fmt.Printf("Server started, host: %s, port: %d\n", hostname, port)
