@@ -91,11 +91,11 @@ docker ps
 
 # TODO:
 
-- Create proper fleet files in coreos/ - fix docker links to ambassador pattern
+* Create proper fleet files in coreos/ - fix docker links to ambassador pattern
 
-- Add Dockerfile with HAproxy based on etcd
+* Add Dockerfile with HAproxy based on etcd
 
-- Add logs filtering  
--- Add host<public ip> as key message send to NSQ - web
--- Add peridiacally asking about all web servers from etcd and send this info to frontend(over WebSocket) - backend
--- Add logs filtering over host ip - fronend 
+* Add logs filtering  
+  * Add host<public ip> as key message send to NSQ - web
+  * Add peridiacally asking about all web servers from etcd and send this info to frontend(over WebSocket) - backend
+  * Add logs filtering over host ip - fronend 
