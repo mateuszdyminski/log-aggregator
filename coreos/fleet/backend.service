@@ -8,5 +8,5 @@ Restart=always
 RestartSec=10s
 ExecStartPre=-/usr/bin/docker ps -a -q | xargs docker rm
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/backend
-ExecStart=/usr/bin/docker run -e "TOPIC=topic1" -p 8080:8080 --link nsqMaster:nsqMaster --name backend mateuszdyminski/backend
+ExecStart=/usr/bin/docker run -e "TOPIC=topic1" -p 8080:8080 --link nsqMaster:nsqMaster --name backend quay.io/mateuszdyminski/backend
 ExecStop=/usr/bin/docker stop backend

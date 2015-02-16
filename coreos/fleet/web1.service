@@ -8,5 +8,5 @@ Restart=always
 RestartSec=10s
 ExecStartPre=-/usr/bin/docker ps -a -q | xargs docker rm
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/web
-ExecStart=/usr/bin/docker run --rm -e "PORT=8001" -e "TOPIC=topic1" -p 8001:8001 --link nsqWorker:nsqWorker --name web1 mateuszdyminski/web
+ExecStart=/usr/bin/docker run --rm -e "PORT=8001" -e "TOPIC=topic1" -p 8001:8001 --link nsqWorker:nsqWorker --name web1 quay.io/mateuszdyminski/web
 ExecStop=/usr/bin/docker stop web1

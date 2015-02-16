@@ -7,5 +7,5 @@ Restart=always
 RestartSec=10s
 ExecStartPre=-/usr/bin/docker ps -a -q | xargs docker rm
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/frontend
-ExecStart=/usr/bin/docker run --rm -p 9001:9001 --name frontend mateuszdyminski/frontend
+ExecStart=/usr/bin/docker run --rm -p 9001:9001 --name frontend quay.io/mateuszdyminski/frontend
 ExecStop=/usr/bin/docker stop frontend

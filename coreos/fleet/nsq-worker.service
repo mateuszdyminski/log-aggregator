@@ -8,5 +8,5 @@ Restart=always
 RestartSec=10s
 ExecStartPre=-/usr/bin/docker ps -a -q | xargs docker rm
 ExecStartPre=/usr/bin/docker pull nsqio/nsq
-ExecStart=/usr/bin/docker run --name nsqWorker -p 4150:4150 -p 4151:4151 nsqio/nsq /nsqd --broadcast-address=172.17.42.1 --lookupd-tcp-address=nsqMaster:4160
+ExecStart=/usr/bin/docker run --name nsqWorker --link nsqMaster:nsqMaster -p 4150:4150 -p 4151:4151 nsqio/nsq /nsqd --broadcast-address=172.17.42.1 --lookupd-tcp-address=nsqMaster:4160
 ExecStop=/usr/bin/docker stop nsqWorker
