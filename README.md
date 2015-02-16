@@ -44,7 +44,7 @@ export GOPATH=$PWD/frontend && go get github.com/gorilla/mux
 Install backend dependencies - first time only
 
 ```
-export GOPATH=$PWD/backend && go get github.com/Shopify/sarama github.com/gorilla/websocket
+export GOPATH=$PWD/backend && go get github.com/bitly/go-nsq github.com/gorilla/websocket
 ```
 
 Build log generator:
@@ -88,3 +88,14 @@ docker ps
 2. Open log aggregator: http://127.0.0.1:9001
 3. Open 2 tabs in web browser: http://127.0.0.1:8001 and http://127.0.0.1:8002
 4. Http server logs should appear in log-aggregator: http://127.0.0.1:9001 
+
+# TODO:
+
+- Create proper fleet files in coreos/ - fix docker links to ambassador pattern
+
+- Add Dockerfile with HAproxy based on etcd
+
+- Add logs filtering  
+-- Add host<public ip> as key message send to NSQ - web
+-- Add peridiacally asking about all web servers from etcd and send this info to frontend(over WebSocket) - backend
+-- Add logs filtering over host ip - fronend 

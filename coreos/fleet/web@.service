@@ -1,0 +1,27 @@
+[Unit]
+Description=Log-aggregator web %i service
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+Requires=nsq-worker.service
+Requires=web-discovery@%i.service
+
+# Ordering
+After=etcd.service
+After=docker.service
+After=nsq-worker.service
+Before=web-discovery@%i.service
+
+[Service]
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+ExecStartPre=-/usr/bin/docker rm web%i
+ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/web
+ExecStart=/usr/bin/docker run --rm -e "PORT=800%i" -p ${COREOS_PUBLIC_IPV4}:800%i:80 --link nsqWorker:nsqWorker --name web%i quay.io/mateuszdyminski/web
+ExecStop=/usr/bin/docker stop web%i
+
+[X-Fleet]
+# Don't schedule on the same machine
+X-Conflicts=web@*.service

@@ -3,9 +3,10 @@ Description=Log-aggregator nsq-master service
 After=docker.service
 
 [Service]
-Restart=always
-RestartSec=10s
-ExecStartPre=-/usr/bin/docker ps -a -q | xargs docker rm
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+ExecStartPre=-/usr/bin/docker rm nsqMaster
 ExecStartPre=/usr/bin/docker pull nsqio/nsq
 ExecStart=/usr/bin/docker run --name nsqMaster -p 4160 -p 4161 nsqio/nsq /nsqlookupd
 ExecStop=/usr/bin/docker stop nsqMaster
