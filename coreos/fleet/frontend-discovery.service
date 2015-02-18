@@ -1,0 +1,35 @@
+[Unit]
+Description=Frontend server log-aggregator etcd registration
+
+# Requirements
+Requires=etcd.service
+Requires=frontend.service
+
+# Dependency ordering and binding
+After=etcd.service
+After=frontend.service
+BindsTo=frontend.service
+
+[Service]
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Start
+## Test whether service is accessible and then register useful information
+ExecStart=/bin/bash -c '\
+  while true; do \
+    curl -f ${COREOS_PUBLIC_IPV4}:9001; \
+    if [ $? -eq 0 ]; then \
+      etcdctl set /services/frontend/${COREOS_PUBLIC_IPV4} \'{"host": "%H", "ipv4_addr": ${COREOS_PUBLIC_IPV4}, "port": 9001 }\' --ttl 30; \
+    else \
+      etcdctl rm /services/frontend/${COREOS_PUBLIC_IPV4}; \
+    fi; \
+    sleep 20; \
+  done'
+
+# Stop
+ExecStop=/usr/bin/etcdctl rm /services/frontend/${COREOS_PUBLIC_IPV4}
+
+[X-Fleet]
+# Schedule on the same machine as the associated Frontend service
+X-ConditionMachineOf=frontend.service

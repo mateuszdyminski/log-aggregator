@@ -1,9 +1,37 @@
 [Unit]
-Description=Log-aggregator frontend service
+Description=Log-aggregator frontend server
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+Requires=frontend-discovery.service
+
+# Dependency ordering
+After=etcd.service
 After=docker.service
+Before=frontend-discovery.service
 
 [Service]
+# Let processes take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Pre-start and Start
+## Directives with "=-" are allowed to fail without consequence
 ExecStartPre=-/usr/bin/docker rm frontend
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/frontend
-ExecStart=/usr/bin/docker run --rm -p 9001:9001 --name frontend quay.io/mateuszdyminski/frontend
+ExecStart=/usr/bin/docker run -p ${COREOS_PUBLIC_IPV4}:9001:9001 --name frontend quay.io/mateuszdyminski/frontend
+
+# Stop
 ExecStop=/usr/bin/docker stop frontend
+
+[X-Fleet]
+# Don't schedule on the same machine as other Web instances
+X-Conflicts=frontend.service
+MachineOf=frontend.service

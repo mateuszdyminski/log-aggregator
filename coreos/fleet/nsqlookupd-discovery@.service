@@ -1,0 +1,29 @@
+
+[Unit]
+Description=NSQLookupd registration service
+
+Requires=etcd.service
+Requires=nsqlookupd@%i.service
+
+After=etcd.service
+After=nsqlookupd@%i.service
+
+BindsTo=nsqlookupd@%i.service
+
+[Service]
+EnvironmentFile=/etc/environment
+
+ExecStart=/bin/bash -c '\
+ while true; do \
+        curl -f ${COREOS_PRIVATE_IPV4}:4161/ping; \
+        if [ $? -eq 0 ]; then \
+          printf \'{"host": "%s", "tcp": "%s", "http": "%s"}\' "${COREOS_PRIVATE_IPV4}" "4160" "4161" | \
+          etcdctl set /services/nsqlookupd/${COREOS_PRIVATE_IPV4} --ttl 30; \
+        fi; \
+        sleep 20; \
+    done'
+
+ExecStop=/usr/bin/etcdctl rm /services/nsqlookupd/${COREOS_PRIVATE_IPV4}
+
+[X-Fleet]
+MachineOf=nsqlookupd@%i.service

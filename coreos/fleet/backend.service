@@ -1,10 +1,41 @@
 [Unit]
-Description=Log-aggregator backend service
+Description=Log-aggregator backend server
 After=docker.service
 After=nsq-worker.service
 
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+Requires=backend-discovery.service
+
+# Dependency ordering
+After=etcd.service
+After=docker.service
+After=nsq-worker.service
+Before=backend-discovery.service
+
 [Service]
+# Let processes take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Pre-start and Start
+## Directives with "=-" are allowed to fail without consequence
 ExecStartPre=-/usr/bin/docker rm backend
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/backend
-ExecStart=/usr/bin/docker run -e "TOPIC=topic1" -p 8080:8080 --link nsqMaster:nsqMaster --name backend quay.io/mateuszdyminski/backend
+ExecStart=/usr/bin/docker run -p ${COREOS_PUBLIC_IPV4}:9001:9001 --name frontend quay.io/mateuszdyminski/frontend
+run -p ${COREOS_PUBLIC_IPV4}:8080:8080 --link nsqMaster:nsqMaster --name backend quay.io/mateuszdyminski/backend
+
+# Stop
 ExecStop=/usr/bin/docker stop backend
+
+[X-Fleet]
+# Don't schedule on the same machine as other Web instances
+X-Conflicts=backend.service
+MachineOf=frontend.service

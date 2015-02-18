@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	nsqHost string
-	port    int
+	nsqdAddr string
+	host     string
+	port     int
 )
 
 func init() {
@@ -19,16 +20,17 @@ func init() {
 		flag.PrintDefaults()
 	}
 
-	flag.StringVar(&nsqHost, "nsqHost", "nsq-worker", "nsq host")
+	flag.StringVar(&nsqdAddr, "nsqdAddr", "localhost:4150", "nsq address")
+	flag.StringVar(&host, "host", "localhost", "hostname")
 	flag.IntVar(&port, "p", 8001, "web port")
 }
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Nsq host: %s\n", nsqHost)
+	fmt.Printf("Nsqd address: %s\n", nsqdAddr)
 	fmt.Printf("Web port: %d\n", port)
 
-	SetupLogNsq(nsqHost)
+	SetupLogNsq(nsqdAddr, host)
 
 	http.HandleFunc("/", dummyHandler)
 	fmt.Printf("Web port 1")

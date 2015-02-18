@@ -1,43 +1,38 @@
-nsqMaster:
-  image: nsqio/nsq
+nsqlookupd:
+  image: quay.io/mateuszdyminski/nsq
   ports:
-    - "4160"
-    - "4161"
-  command: /nsqlookupd
-nsqWorker:
-  image: nsqio/nsq
+    - "4160:4160"
+    - "4161:4161"
+  command: nsqlookupd --broadcast-address=172.17.42.1
+nsqd:
+  image: quay.io/mateuszdyminski/nsq
   ports:
     - "4150:4150"
     - "4151:4151"
-  links:
-    - nsqMaster:nsqMaster
-  command: /nsqd --broadcast-address=172.17.42.1 --lookupd-tcp-address=nsqMaster:4160
+  command: nsqd --broadcast-address=172.17.42.1 --lookupd-tcp-address=172.17.42.1:4160
 web1:
   build: web
   ports:
     - "8001:8001"
-  links:
-    - nsqWorker:nsqWorker
   environment:
     PORT: "8001"
-    TOPIC: "topic1"
+    NSQD_ADDR: "172.17.42.1:4150"
+    HOST: "localhost1"
 web2:
   build: web
   ports:
     - "8002:8002"
-  links:
-    - nsqWorker:nsqWorker
   environment:
     PORT: "8002"
-    TOPIC: "topic1"
+    NSQD_ADDR: "172.17.42.1:4150"
+    HOST: "localhost2"
 backend:
   build: backend
   ports:
-    - "8080:8080"
-  links:
-    - nsqMaster:nsqMaster
+    - "127.0.0.1:8090:8090"
   environment:
-    TOPIC: "topic1"
+    PORT: "8090"
+    NSQ_LOOKUPD: "172.17.42.1:4161"
 frontend:
   build: frontend
   ports:

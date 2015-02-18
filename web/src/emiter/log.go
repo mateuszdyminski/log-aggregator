@@ -2,39 +2,33 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/bitly/go-nsq"
 	"github.com/mateuszdyminski/glog"
 )
 
-func SetupLogNsq(nsqHost string) {
+func SetupLogNsq(nsqdAddr, host string) {
 
 	cfg := nsq.NewConfig()
 
 	// make the producer
-	producer, err := nsq.NewProducer(nsqHost+":4150", cfg)
+	producer, err := nsq.NewProducer(nsqdAddr, cfg)
 	if err != nil {
 		fmt.Printf("Error: %+v \n", err)
 		select {
 		case <-time.After(10 * time.Second):
-			go SetupLogNsq(nsqHost)
+			go SetupLogNsq(nsqdAddr, host)
 		}
 		return
 	} else {
 		fmt.Println("> connected")
 	}
 
-	host, err := os.Hostname()
-	if err != nil {
-		host = "localhost"
-	}
-
 	logsChannel := make(chan []byte, 1000)
 	glog.SetChannel(logsChannel)
 
-	go func(nsqHost, host string) {
+	go func(host string) {
 		for {
 			select {
 			case log := <-logsChannel:
@@ -48,7 +42,7 @@ func SetupLogNsq(nsqHost string) {
 				fmt.Println("Logs sent\n")
 			}
 		}
-	}(nsqHost, host)
+	}(host)
 }
 
 func Info(args ...interface{}) {

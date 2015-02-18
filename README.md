@@ -1,6 +1,5 @@
 # WTF?
 
-
 Log-aggregator shows how to aggregate logs from many diffents servers and show them in one place.   
 
 Project contains 3 main parts:
@@ -29,49 +28,25 @@ This project was created at micro-hacathlon during web-socket workshop at Avaus 
 
 ### CREATE EXECUTABLE HTTP SERVERS
 
-Install log generator dependencies - first time only 
+Install dependencies - first time only 
 
 ```
-export GOPATH=$PWD/web && go get github.com/bitly/go-nsq github.com/mateuszdyminski/glog
+./dev.sh deps
 ```
 
-Install frontend dependencies - first time only
+Build all components
 
 ```
-export GOPATH=$PWD/frontend && go get github.com/gorilla/mux
+./dev.sh build
 ```
 
-Install backend dependencies - first time only
+Run single component(not in docker container):
 
 ```
-export GOPATH=$PWD/backend && go get github.com/bitly/go-nsq github.com/gorilla/websocket
+./dev.sh {frontend, backend, web}
 ```
 
-Build log generator:
-
-```
-export GOOS=linux && export GOARCH=amd64 && export GOPATH=$PWD/web && go build -o web/bin/main emiter
-```
-
-Build frontend server:
-
-```
-export GOOS=linux && export GOARCH=amd64 && export GOPATH=$PWD/frontend && go build -o frontend/bin/server server
-```
-
-Build backend server:
-
-```
-export GOOS=linux && export GOARCH=amd64 && export GOPATH=$PWD/backend && go build -o backend/bin/backend backend
-```
-
-Go to fig.yml file and change - note that it can't be 127.0.0.1 or localhost:
-
-```
-KAFKA_ADVERTISED_HOST_NAME: <IP OF HOST> 
-```
-
-Run all containers:
+Run all components in docker containers:
 
 ```
 fig up -d
@@ -95,7 +70,7 @@ docker ps
 
 * Add Dockerfile with HAproxy based on etcd
 
-* Add logs filtering  
+* Add logs filtering
   * Add host<public ip> as key message send to NSQ - web
   * Add peridiacally asking about all web servers from etcd and send this info to frontend(over WebSocket) - backend
   * Add logs filtering over host ip - fronend 

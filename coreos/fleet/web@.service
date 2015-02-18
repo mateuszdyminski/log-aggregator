@@ -1,27 +1,38 @@
 [Unit]
-Description=Log-aggregator web %i service
+Description=Web server service on port %i
 
 # Requirements
 Requires=etcd.service
 Requires=docker.service
-Requires=nsq-worker.service
 Requires=web-discovery@%i.service
 
-# Ordering
+# Dependency ordering
 After=etcd.service
 After=docker.service
-After=nsq-worker.service
+After=nsqd.service
 Before=web-discovery@%i.service
 
 [Service]
+# Let processes take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
 # Get CoreOS environmental variables
 EnvironmentFile=/etc/environment
 
-ExecStartPre=-/usr/bin/docker rm web%i
+# Pre-start and Start
+## Directives with "=-" are allowed to fail without consequence
+ExecStartPre=-/usr/bin/docker kill web.%i
+ExecStartPre=-/usr/bin/docker rm web.%i
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/web
-ExecStart=/usr/bin/docker run --rm -e "PORT=800%i" -p ${COREOS_PUBLIC_IPV4}:800%i:80 --link nsqWorker:nsqWorker --name web%i quay.io/mateuszdyminski/web
-ExecStop=/usr/bin/docker stop web%i
+ExecStart=/usr/bin/docker run -e "HOST=%H" -e "PORT=%i" -e "NSQD_ADDR=${COREOS_PRIVATE_IPV4}:4150" --name web.%i -p ${COREOS_PUBLIC_IPV4}:%i:80 quay.io/mateuszdyminski/web
+
+# Stop
+ExecStop=/usr/bin/docker stop web.%i
 
 [X-Fleet]
-# Don't schedule on the same machine
+# Don't schedule on the same machine as other Web instances
 X-Conflicts=web@*.service

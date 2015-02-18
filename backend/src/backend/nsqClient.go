@@ -17,19 +17,19 @@ type Msg struct {
 
 var client = NsqClient{}
 
-func (k *NsqClient) run(h *hub, nsqTopic, nsqHost string) {
+func (k *NsqClient) run(h *hub, nsqLookupd string) {
 	var reader *nsq.Consumer
 	var err error
 	inChan := make(chan *nsq.Message)
-	lookup := nsqHost + ":4161"
+	lookup := nsqLookupd
 	conf := nsq.NewConfig()
 	conf.Set("maxInFlight", 1000)
-	reader, err = nsq.NewConsumer(nsqTopic, "testqueue#ephemeral", conf)
+	reader, err = nsq.NewConsumer("all", "testqueue#ephemeral", conf)
 	if err != nil {
 		fmt.Printf("Error: %+v \n", err)
 		select {
 		case <-time.After(10 * time.Second):
-			go k.run(h, nsqTopic, nsqHost)
+			go k.run(h, nsqLookupd)
 		}
 		return
 	}
@@ -44,7 +44,7 @@ func (k *NsqClient) run(h *hub, nsqTopic, nsqHost string) {
 		fmt.Printf("Error: %+v \n", err)
 		select {
 		case <-time.After(10 * time.Second):
-			go k.run(h, nsqTopic, nsqHost)
+			go k.run(h, nsqLookupd)
 		}
 		return
 	}

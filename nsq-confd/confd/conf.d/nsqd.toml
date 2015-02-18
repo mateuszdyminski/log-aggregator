@@ -1,0 +1,10 @@
+[template]
+src = "nsqd.tmpl"
+
+dest = "/etc/nsq/nsqd.toml"
+
+keys = [ 
+    "/services/nsqlookupd" ,
+]
+
+reload_cmd="pkill nsqd && nsqd -broadcast-address=$HOST_IP -config=/etc/nsq/nsqd.toml &> /var/log/nsqd.log &"

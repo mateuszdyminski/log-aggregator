@@ -1,0 +1,29 @@
+[Unit]
+Description=NSQDaemon
+
+Requires=docker.service
+Requires=etcd.service
+
+After=docker.service
+After=etcd.service
+
+[Service]
+TimeoutStartSec=0
+
+EnvironmentFile=/etc/environment
+
+ExecStartPre=-/usr/bin/docker kill nsqd
+ExecStartPre=-/usr/bin/docker rm nsqd
+ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/nsq
+
+ExecStart=/usr/bin/docker run \
+                          -e HOST_IP=${COREOS_PRIVATE_IPV4} \
+                          -p 4150:4150 -p 4151:4151 \
+                          --name nsqd \
+                          quay.io/mateuszdyminski/nsq \
+                          confd-watch-nsqd
+
+ExecStop=/usr/bin/docker stop nsqd
+
+[X-Fleet]
+Global=true

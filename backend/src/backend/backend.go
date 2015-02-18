@@ -10,11 +10,9 @@ import (
 )
 
 var (
-	hostname string
-	nsqHost  string
-	nsqTopic string
-	port     int
-	waitTime int
+	hostname   string
+	nsqLookupd string
+	port       int
 )
 
 func init() {
@@ -24,21 +22,19 @@ func init() {
 	}
 
 	flag.StringVar(&hostname, "h", "localhost", "hostname")
-	flag.IntVar(&port, "p", 8080, "port")
-	flag.StringVar(&nsqHost, "nsqHost", "nsq-master", "nsq host")
-	flag.StringVar(&nsqTopic, "nsqTopic", "all", "nsq topic")
-	flag.IntVar(&waitTime, "wait", 0, "wait time")
+	flag.StringVar(&nsqLookupd, "nsqLookupd", "127.0.0.1:4161", "nsqLookupd host")
+	flag.IntVar(&port, "p", 8090, "port")
 }
 
 func main() {
 	flag.Parse()
 
-	fmt.Printf("NsqHost: %s, topic: %s\n", nsqHost, nsqTopic)
+	fmt.Printf("NsqLookupd: %s\n", nsqLookupd)
 
 	// run websocket hub
 	go h.run()
 
-	go client.run(&h, nsqTopic, nsqHost)
+	go client.run(&h, nsqLookupd)
 
 	http.HandleFunc("/wsapi/ws", serveWs)
 	fmt.Printf("Server started, host: %s, port: %d\n", hostname, port)
