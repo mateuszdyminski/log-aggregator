@@ -7,4 +7,4 @@ ADD bin/server /usr/bin/server
 
 RUN chmod 766 /home/app -R
 
-CMD /usr/bin/server --dir=/home/app --p=9001
+CMD /usr/bin/server --dir=/home/app --p=$PORT

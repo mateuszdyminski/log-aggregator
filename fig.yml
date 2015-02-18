@@ -37,3 +37,5 @@ frontend:
   build: frontend
   ports:
     - "9001:9001"
+  environment:
+    PORT: "9001"

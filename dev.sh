@@ -5,11 +5,12 @@ usage() {
 Usage: $(basename $0) <command>
 
 Wrappers around core binaries:
-    frontend               Runs the frontend.
-    backend                Runs the backend.
-    web                    Runs the web - default port 8001.
-    nsq                    Runs nsq dockers.
-    deps                   Install all dependencies.
+    frontend                Runs the frontend.
+    backend                 Runs the backend.
+    web                     Runs the web - default port 8001.
+    nsq                     Runs nsq dockers.
+    deps                    Installs all dependencies.
+    pushFrontend            Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
 EOF
   exit 1
 }
@@ -18,6 +19,7 @@ GO=${GO:-$(which go)}
 export GOPATH="$PWD"
 export PATH="$PATH:$GOPATH/bin"
 
+VERSION=${IMT_VERSION-"$(git describe --always)"}
 
 install_deps() {
   echo "Installing dependencies..."
@@ -67,6 +69,48 @@ startNsq() {
   echo "Nsq started with success!"
 }
 
+pushFrontend() {
+  echo "Pushing frontend container started..."
+  buildFrontend
+  set -e
+  docker build -t quay.io/mateuszdyminski/frontend:"$VERSION" "$PWD/frontend/."
+  containerId=$(docker run -d quay.io/mateuszdyminski/frontend:"$VERSION")
+  docker commit "$containerId" quay.io/mateuszdyminski/frontend
+  docker push quay.io/mateuszdyminski/frontend
+  docker kill "$containerId"
+  docker rm "$containerId"
+  set +e
+  echo "Frontend pushed to quay.io!"
+}
+
+pushBackend() {
+  echo "Pushing backend container started..."
+  buildFrontend
+  set -e
+  docker build -t quay.io/mateuszdyminski/backend:"$VERSION" "$PWD/backend/."
+  containerId=$(docker run -d quay.io/mateuszdyminski/frontend:"$VERSION")
+  docker commit "$containerId" quay.io/mateuszdyminski/backend
+  docker push quay.io/mateuszdyminski/backend
+  docker kill "$containerId"
+  docker rm "$containerId"
+  set +e
+  echo "Backend pushed to quay.io!"
+}
+
+pushWeb() {
+  echo "Pushing web container started..."
+  buildFrontend
+  set -e
+  docker build -t quay.io/mateuszdyminski/web:"$VERSION" "$PWD/web/."
+  containerId=$(docker run -d quay.io/mateuszdyminski/web:"$VERSION")
+  docker commit "$containerId" quay.io/mateuszdyminski/web
+  docker push quay.io/mateuszdyminski/web
+  docker kill "$containerId"
+  docker rm "$containerId"
+  set +e
+  echo "Web pushed to quay.io!"
+}
+
 CMD="$1"
 shift
 case "$CMD" in
@@ -93,6 +137,15 @@ case "$CMD" in
   ;;
   nsq)
     startNsq
+  ;;
+  pushFrontend)
+    pushFrontend
+  ;;
+  pushBackend)
+    pushBackend
+  ;;
+  pushWeb)
+    pushWeb
   ;;
   *)
     usage
