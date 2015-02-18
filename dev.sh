@@ -8,11 +8,13 @@ Wrappers around core binaries:
     frontend                Runs the frontend.
     backend                 Runs the backend.
     web                     Runs the web - default port 8001.
-    nsq                     Runs nsq dockers.
+    nsqStart                Runs nsq dockers.
+    nsqStop                 Stop nsq dockers. 
     deps                    Installs all dependencies.
     pushFrontend            Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
     pushBackend             Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
     pushWeb                 Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
+    build                   Builds all.
 EOF
   exit 1
 }
@@ -60,6 +62,14 @@ buildWeb() {
   export GOOS="linux" && export GOARCH="amd64" && export GOPATH="$PWD/web" && go build -o web/bin/main emiter
   set +e
   echo "Web builed with success!"
+}
+
+stopNsq() {
+  echo "Stop nsq dockers..."
+  set -e
+  docker ps | grep quay.io/mateuszdyminski/nsq | awk '{ print $1}' | xargs --no-run-if-empty docker kill 
+  set +e
+  echo "Nsq stopped with success!"
 }
 
 startNsq() {
@@ -137,8 +147,11 @@ case "$CMD" in
     buildWeb
     echo "All builds done!"
   ;;
-  nsq)
+  nsqStart)
     startNsq
+  ;;
+  nsqStop)
+    stopNsq
   ;;
   pushFrontend)
     pushFrontend
