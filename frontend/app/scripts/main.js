@@ -17,8 +17,8 @@
     };
 
     socket.onmessage = function(msg) {
-        console.log(msg);
         var message = JSON.parse(msg.data);
+        console.debug(message.Host);
         appendMessage(message);
     }
 
@@ -36,10 +36,10 @@
     function appendMessage(message) {
         var messageEl = document.createElement('li');
         var hostEl = document.createElement('span');
-        hostEl.appendChild(document.createTextNode(message.Key));
+        hostEl.appendChild(document.createTextNode(message.Host));
         messageEl.appendChild(hostEl);
 
-        messageEl.appendChild(document.createTextNode(message.Message));
+        messageEl.appendChild(document.createTextNode(message.Content));
 
         document.getElementById('chat').appendChild(messageEl);
     }
