@@ -11,6 +11,8 @@ Wrappers around core binaries:
     nsq                     Runs nsq dockers.
     deps                    Installs all dependencies.
     pushFrontend            Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
+    pushBackend             Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
+    pushWeb                 Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
 EOF
   exit 1
 }
