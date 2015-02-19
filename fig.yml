@@ -29,7 +29,7 @@ web2:
 backend:
   build: backend
   ports:
-    - "127.0.0.1:8090:8090"
+    - "8090:8090"
   environment:
     PORT: "8090"
     NSQ_LOOKUPD: "172.17.42.1:4161"
