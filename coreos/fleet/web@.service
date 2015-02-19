@@ -28,11 +28,11 @@ EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker kill web.%i
 ExecStartPre=-/usr/bin/docker rm web.%i
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/web
-ExecStart=/usr/bin/docker run -e "HOST=%H" -e "PORT=%i" -e "NSQD_ADDR=${COREOS_PRIVATE_IPV4}:4150" --name web.%i -p ${COREOS_PUBLIC_IPV4}:%i:80 quay.io/mateuszdyminski/web
+ExecStart=/usr/bin/docker run -e "HOST=%H" -e "PORT=%i" -e "NSQD_ADDR=${COREOS_PRIVATE_IPV4}:4150" --name web.%i -p ${COREOS_PUBLIC_IPV4}:80:%i quay.io/mateuszdyminski/web
 
 # Stop
 ExecStop=/usr/bin/docker stop web.%i
 
 [X-Fleet]
 # Don't schedule on the same machine as other Web instances
-X-Conflicts=web@*.service
+Conflicts=web@*.service

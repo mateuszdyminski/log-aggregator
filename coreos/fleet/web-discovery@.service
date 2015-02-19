@@ -11,7 +11,6 @@ After=web@%i.service
 BindsTo=web@%i.service
 
 [Service]
-
 # Get CoreOS environmental variables
 EnvironmentFile=/etc/environment
 
@@ -21,7 +20,7 @@ ExecStart=/bin/bash -c '\
   while true; do \
     curl -f ${COREOS_PUBLIC_IPV4}:80; \
     if [ $? -eq 0 ]; then \
-      etcdctl set /services/web/${COREOS_PUBLIC_IPV4} \'{"host": "%H", "ipv4_addr": ${COREOS_PUBLIC_IPV4}, "port": }\' --ttl 30; \
+      etcdctl set /services/web/${COREOS_PUBLIC_IPV4} \'{"host": "%H", "ipv4_addr": ${COREOS_PUBLIC_IPV4}, "port": 80 }\' --ttl 30; \
     else \
       etcdctl rm /services/web/${COREOS_PUBLIC_IPV4}; \
     fi; \

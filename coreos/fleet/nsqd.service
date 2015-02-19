@@ -14,14 +14,9 @@ EnvironmentFile=/etc/environment
 
 ExecStartPre=-/usr/bin/docker kill nsqd
 ExecStartPre=-/usr/bin/docker rm nsqd
-ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/nsq
+ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/nsq:latest
 
-ExecStart=/usr/bin/docker run \
-                          -e HOST_IP=${COREOS_PRIVATE_IPV4} \
-                          -p 4150:4150 -p 4151:4151 \
-                          --name nsqd \
-                          quay.io/mateuszdyminski/nsq \
-                          confd-watch-nsqd
+ExecStart=/usr/bin/docker run -e HOST_IP=${COREOS_PRIVATE_IPV4} -p 4150:4150 -p 4151:4151 --name nsqd quay.io/mateuszdyminski/nsq:latest confd-watch-nsqd
 
 ExecStop=/usr/bin/docker stop nsqd
 

@@ -1,7 +1,7 @@
-nsqlookupd_tcp_addresses = [ 
+nsqlookupd_tcp_addresses = [
 {{range gets "/services/nsqlookupd/*"}}
 {{$data := json .Value}}
-"{{$data.host}}:{{$data.tcp}}",
+"{{$data.ipv4_addr}}:{{$data.port}}",
 {{end}}
 ]
 

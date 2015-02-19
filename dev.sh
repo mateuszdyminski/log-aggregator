@@ -97,10 +97,10 @@ pushFrontend() {
 
 pushBackend() {
   echo "Pushing backend container started..."
-  buildFrontend
+  buildBackend
   set -e
   docker build -t quay.io/mateuszdyminski/backend:"$VERSION" "$PWD/backend/."
-  containerId=$(docker run -d quay.io/mateuszdyminski/frontend:"$VERSION")
+  containerId=$(docker run -d quay.io/mateuszdyminski/backend:"$VERSION")
   docker commit "$containerId" quay.io/mateuszdyminski/backend
   docker push quay.io/mateuszdyminski/backend
   docker kill "$containerId"
@@ -111,7 +111,7 @@ pushBackend() {
 
 pushWeb() {
   echo "Pushing web container started..."
-  buildFrontend
+  buildWeb
   set -e
   docker build -t quay.io/mateuszdyminski/web:"$VERSION" "$PWD/web/."
   containerId=$(docker run -d quay.io/mateuszdyminski/web:"$VERSION")
@@ -121,6 +121,19 @@ pushWeb() {
   docker rm "$containerId"
   set +e
   echo "Web pushed to quay.io!"
+}
+
+pushNsqd() {
+  echo "Pushing Nsqd container started..."
+  set -e
+  docker build -t quay.io/mateuszdyminski/nsq:"$VERSION" "$PWD/nsq-confd/."
+  containerId=$(docker run -d quay.io/mateuszdyminski/nsq:"$VERSION")
+  docker commit "$containerId" quay.io/mateuszdyminski/nsq
+  docker push quay.io/mateuszdyminski/nsq
+  docker kill "$containerId"
+  docker rm "$containerId"
+  set +e
+  echo "Nsq pushed to quay.io!"
 }
 
 CMD="$1"
@@ -161,6 +174,9 @@ case "$CMD" in
   ;;
   pushWeb)
     pushWeb
+  ;;
+  pushNsqd)
+    pushNsqd
   ;;
   *)
     usage

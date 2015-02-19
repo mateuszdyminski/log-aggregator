@@ -1,0 +1,35 @@
+[Unit]
+Description=Backend server log-aggregator etcd registration
+
+# Requirements
+Requires=etcd.service
+Requires=backend.service
+
+# Dependency ordering and binding
+After=etcd.service
+After=backend.service
+BindsTo=backend.service
+
+[Service]
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Start
+## Test whether service is accessible and then register useful information
+ExecStart=/bin/bash -c '\
+  while true; do \
+    curl -f ${COREOS_PUBLIC_IPV4}:8090; \
+    if [ $? -eq 0 ]; then \
+      etcdctl set /services/backend/${COREOS_PUBLIC_IPV4} \'{"host": "%H", "ipv4_addr": ${COREOS_PUBLIC_IPV4}, "port": 8090 }\' --ttl 30; \
+    else \
+      etcdctl rm /services/backend/${COREOS_PUBLIC_IPV4}; \
+    fi; \
+    sleep 20; \
+  done'
+
+# Stop
+ExecStop=/usr/bin/etcdctl rm /services/backend/${COREOS_PUBLIC_IPV4}
+
+[X-Fleet]
+# Schedule on the same machine as the associated backend service
+X-ConditionMachineOf=backend.service

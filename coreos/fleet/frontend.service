@@ -26,12 +26,12 @@ EnvironmentFile=/etc/environment
 ## Directives with "=-" are allowed to fail without consequence
 ExecStartPre=-/usr/bin/docker rm frontend
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/frontend
-ExecStart=/usr/bin/docker run -p ${COREOS_PUBLIC_IPV4}:9001:9001 --name frontend quay.io/mateuszdyminski/frontend
+ExecStart=/usr/bin/docker run -e "PORT=9001" -p ${COREOS_PUBLIC_IPV4}:9001:9001 --name frontend quay.io/mateuszdyminski/frontend
 
 # Stop
 ExecStop=/usr/bin/docker stop frontend
 
 [X-Fleet]
 # Don't schedule on the same machine as other Web instances
-X-Conflicts=frontend.service
-MachineOf=frontend.service
+Conflicts=frontend.service
+MachineOf=backend.service
