@@ -11,6 +11,7 @@ import (
 
 type LogMsg struct {
 	Host    string
+	Level   string
 	Content string
 }
 
@@ -38,7 +39,8 @@ func SetupLogNsq(nsqdAddr, host string) {
 		for {
 			select {
 			case log := <-logsChannel:
-				logData, logErr := json.Marshal(LogMsg{host, string(log)})
+				content := string(log)
+				logData, logErr := json.Marshal(LogMsg{host, string(content[0]), content})
 				if logErr != nil {
 					fmt.Printf("%+v \n", logErr)
 				} else {

@@ -9,11 +9,6 @@ import (
 
 type NsqClient struct{}
 
-type Msg struct {
-	Key     string `json:"Host"`
-	Message string `json:"Content"`
-}
-
 var client = NsqClient{}
 
 func (k *NsqClient) run(h *hub, nsqLookupd string) {

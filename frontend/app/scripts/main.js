@@ -1,6 +1,14 @@
 /* jshint devel:true */
 
 (function(chat) {
+
+    var LogLevel = {
+        "I": "info",
+        "W": "warning",
+        "E": "error",
+        "F": "fatal"
+    }
+
     var loc = window.location, new_uri;
     if (loc.protocol === "https:") {
         new_uri = "wss:";
@@ -38,10 +46,18 @@
         var hostEl = document.createElement('span');
         hostEl.appendChild(document.createTextNode(message.Host));
         messageEl.appendChild(hostEl);
-
         messageEl.appendChild(document.createTextNode(message.Content));
-
+        setClass(message, messageEl);
         document.getElementById('chat').appendChild(messageEl);
+    }
+
+    function setClass(message, element) {
+        var levelType = LogLevel[message.Level];
+        if (levelType !== undefined) {
+            var classAttr = document.createAttribute("class");
+            classAttr.value = LogLevel[message.Level];
+            element.setAttributeNode(classAttr);
+        }
     }
 })(this.chat = {});
 
