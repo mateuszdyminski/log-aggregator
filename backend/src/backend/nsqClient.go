@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -9,11 +8,6 @@ import (
 )
 
 type NsqClient struct{}
-
-type Msg struct {
-	Key     string
-	Message string
-}
 
 var client = NsqClient{}
 
@@ -54,16 +48,8 @@ func (k *NsqClient) run(h *hub, nsqLookupd string) {
 
 func loop(h *hub, inChan chan *nsq.Message) {
 	for msg := range inChan {
-		message := Msg{"all", string(msg.Body)}
-
-		fmt.Printf("got msg: %+v\n", message)
-
-		data, err := json.Marshal(message)
-		if err != nil {
-			fmt.Printf("%+v \n", err)
-		} else {
-			h.broadcast <- data
-			msg.Finish()
-		}
+		fmt.Printf("got msg: %+v\n", string(msg.Body))
+		h.broadcast <- msg.Body
+		msg.Finish()
 	}
 }

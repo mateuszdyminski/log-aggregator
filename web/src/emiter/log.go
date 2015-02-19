@@ -1,12 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/bitly/go-nsq"
 	"github.com/mateuszdyminski/glog"
 )
+
+type LogMsg struct {
+	Host    string
+	Level   string
+	Content string
+}
 
 func SetupLogNsq(nsqdAddr, host string) {
 
@@ -32,14 +39,20 @@ func SetupLogNsq(nsqdAddr, host string) {
 		for {
 			select {
 			case log := <-logsChannel:
-				if err = producer.Publish(host, log); err != nil {
-					fmt.Printf("Error: %+v \n", err)
-				}
-				if err = producer.Publish("all", log); err != nil {
-					fmt.Printf("Error: %+v \n", err)
-				}
+				content := string(log)
+				logData, logErr := json.Marshal(LogMsg{host, string(content[0]), content})
+				if logErr != nil {
+					fmt.Printf("%+v \n", logErr)
+				} else {
+					if err = producer.Publish(host, logData); err != nil {
+						fmt.Printf("Error: %+v \n", err)
+					}
+					if err = producer.Publish("all", logData); err != nil {
+						fmt.Printf("Error: %+v \n", err)
+					}
 
-				fmt.Println("Logs sent\n")
+					fmt.Println("Logs sent from host", host, nsqdAddr)
+				}
 			}
 		}
 	}(host)
