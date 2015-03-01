@@ -29,7 +29,7 @@ EnvironmentFile=/etc/environment
 ## Directives with "=-" are allowed to fail without consequence
 ExecStartPre=-/usr/bin/docker rm backend
 ExecStartPre=/usr/bin/docker pull quay.io/mateuszdyminski/backend
-ExecStart=/usr/bin/docker run -e "PORT=8090" -e "NSQ_LOOKUPD=${COREOS_PRIVATE_IPV4}:4161" -p ${COREOS_PUBLIC_IPV4}:8090:8090 --name backend quay.io/mateuszdyminski/backend
+ExecStart=/usr/bin/docker run -e "PORT=8090" -e "HOST_IP=${COREOS_PRIVATE_IPV4}" -p ${COREOS_PRIVATE_IPV4}:8090:8090 --name backend quay.io/mateuszdyminski/backend confd-watch-nsqlookupd
 
 # Stop
 ExecStop=/usr/bin/docker stop backend

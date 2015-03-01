@@ -23,10 +23,11 @@ This project was created at micro-hacathlon during web-socket workshop at Avaus 
 - GOLANG see: https://golang.org/doc/install
 - DOCKER see: https://docs.docker.com/installation/
 - FIG see: http://www.fig.sh/install.html
+- ANSIBLE see: http://docs.ansible.com/intro_installation.html
 
 ## RUN LOCAL DOCKER CLUSTER
 
-### CREATE EXECUTABLE HTTP SERVERS
+### Prepare all containers
 
 Install dependencies - first time only 
 
@@ -40,13 +41,9 @@ Build all components
 ./dev.sh build
 ```
 
-Run single component(not in docker container):
+### Run local cluster
 
-```
-./dev.sh {frontend, backend, web}
-```
-
-Run all components in docker containers:
+Run all components as docker containers:
 
 ```
 fig up -d
@@ -64,13 +61,72 @@ docker ps
 3. Open 2 tabs in web browser: http://127.0.0.1:8001 and http://127.0.0.1:8002
 4. Http server logs should appear in log-aggregator: http://127.0.0.1:9001 
 
+## RUN CORE OS CLUSTER - VAGRANT
+
+Go to infra directory
+
+```
+cd infra
+```
+
+Go to https://discovery.etcd.io/new
+
+```
+https://discovery.etcd.io/new
+```
+
+Copy token
+
+```
+https://discovery.etcd.io/04bf190ab730ef19c53241a27644dd4a <- this is token
+```
+
+Paste it in infra/vagrant/user-data <token> tag
+
+Launch vagrant
+
+```
+vagrant up
+```
+
+When all nodes are up and running go to:
+
+```
+cd infra/ansible
+```
+
+We have to edit private key for vagrant first, open file ssh.config and change following line:
+
+```
+IdentityFile /home/md/.vagrant.d/insecure_private_key => IdentityFile /path/to/your/vagrant/private/key
+```
+
+To prepare coreOS cluster for ansible run:
+
+```
+ansible-playbook -i hosts/vagrant-inventory tasks/roles/bootstrap.yml --tags=destroy
+```
+
+Verify if eveything works fine:
+
+```
+ansible -i hosts/vagrant-inventory coreos -m ping
+```
+
+To run all services in cluster:
+
+```
+ansible-playbook -i hosts/vagrant-inventory tasks/roles/services.yml
+```
+
+To stop all services in cluster:
+
+```
+ansible-playbook -i hosts/vagrant-inventory tasks/roles/services.yml --tags=destroy
+```
+
 # TODO:
 
-* Create proper fleet files in coreos/ - fix docker links to ambassador pattern
-
-* Add Dockerfile with HAproxy based on etcd
-
 * Add logs filtering
-  * Add host<public ip> as key message send to NSQ - web
   * Add peridiacally asking about all web servers from etcd and send this info to frontend(over WebSocket) - backend
   * Add logs filtering over host ip - fronend 

@@ -1,0 +1,50 @@
+- name: Remove old files if exists symlinks
+  command: rm /home/core/services/instances -rf
+  tags:
+    - update
+
+- name: Create directory for template instances
+  command: mkdir /home/core/services/instances -p
+  ignore_errors: True
+  tags:
+    - update
+
+- name: Create directory for templates
+  command: mkdir /home/core/services/templates -p
+  ignore_errors: True
+  tags:
+    - update
+
+- name: Copy templates service files
+  copy: src=templates/ dest=/home/core/services/templates/
+  tags:
+    - update
+
+- name: Copy instances service files
+  copy: src=instances/ dest=/home/core/services/instances/
+  tags:
+    - update
+
+- name: Create new links for nsqlookupd instances
+  command: ln -s /home/core/services/templates/nsqlookupd@.service /home/core/services/instances/nsqlookupd@{{item}}.service
+  with_items: "{{workers}}"
+  tags:
+    - update
+
+- name: Create new links for nsqlookupd discovery instances
+  command: ln -s /home/core/services/templates/nsqlookupd-discovery@.service /home/core/services/instances/nsqlookupd-discovery@{{item}}.service
+  with_items: "{{workers}}"
+  tags:
+    - update
+
+- name: Create new links for web instances
+  command: ln -s /home/core/services/templates/web@.service /home/core/services/instances/web@800{{item}}.service
+  with_items: "{{workers}}"
+  tags:
+    - update
+
+- name: Create new links for web discovery instances
+  command: ln -s /home/core/services/templates/web-discovery@.service /home/core/services/instances/web-discovery@800{{item}}.service
+  with_items: "{{workers}}"
+  tags:
+    - update

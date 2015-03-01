@@ -9,12 +9,15 @@ Wrappers around core binaries:
     backend                 Runs the backend.
     web                     Runs the web - default port 8001.
     nsqStart                Runs nsq dockers.
-    nsqStop                 Stop nsq dockers. 
+    nsqStop                 Stop nsq dockers.
     deps                    Installs all dependencies.
     pushFrontend            Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
     pushBackend             Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
     pushWeb                 Builds and pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
-    build                   Builds all.
+    pushNsqd                Pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
+    pushLb                  Pushes container to quay.io. You have to be login first! type 'docker login quay.io'.
+    pushAll                  Pushes all containers to quay.io.
+    build                   Builds all GO components.
 EOF
   exit 1
 }
@@ -35,6 +38,7 @@ install_deps() {
   export GOPATH="$PWD/backend"
   $GO get github.com/bitly/go-nsq
   $GO get github.com/gorilla/websocket
+  $GO get github.com/BurntSushi/toml
 
   export GOPATH="$PWD/frontend"
   $GO get github.com/gorilla/mux
@@ -67,7 +71,7 @@ buildWeb() {
 stopNsq() {
   echo "Stop nsq dockers..."
   set -e
-  docker ps | grep quay.io/mateuszdyminski/nsq | awk '{ print $1}' | xargs --no-run-if-empty docker kill 
+  docker ps | grep quay.io/mateuszdyminski/nsq | awk '{ print $1}' | xargs --no-run-if-empty docker kill
   set +e
   echo "Nsq stopped with success!"
 }
@@ -85,12 +89,8 @@ pushFrontend() {
   echo "Pushing frontend container started..."
   buildFrontend
   set -e
-  docker build -t quay.io/mateuszdyminski/frontend:"$VERSION" "$PWD/frontend/."
-  containerId=$(docker run -d quay.io/mateuszdyminski/frontend:"$VERSION")
-  docker commit "$containerId" quay.io/mateuszdyminski/frontend
+  docker build -t quay.io/mateuszdyminski/frontend:latest "$PWD/frontend/."
   docker push quay.io/mateuszdyminski/frontend
-  docker kill "$containerId"
-  docker rm "$containerId"
   set +e
   echo "Frontend pushed to quay.io!"
 }
@@ -99,12 +99,8 @@ pushBackend() {
   echo "Pushing backend container started..."
   buildBackend
   set -e
-  docker build -t quay.io/mateuszdyminski/backend:"$VERSION" "$PWD/backend/."
-  containerId=$(docker run -d quay.io/mateuszdyminski/backend:"$VERSION")
-  docker commit "$containerId" quay.io/mateuszdyminski/backend
+  docker build -t quay.io/mateuszdyminski/backend:latest "$PWD/backend/."
   docker push quay.io/mateuszdyminski/backend
-  docker kill "$containerId"
-  docker rm "$containerId"
   set +e
   echo "Backend pushed to quay.io!"
 }
@@ -113,12 +109,8 @@ pushWeb() {
   echo "Pushing web container started..."
   buildWeb
   set -e
-  docker build -t quay.io/mateuszdyminski/web:"$VERSION" "$PWD/web/."
-  containerId=$(docker run -d quay.io/mateuszdyminski/web:"$VERSION")
-  docker commit "$containerId" quay.io/mateuszdyminski/web
+  docker build -t quay.io/mateuszdyminski/web:latest "$PWD/web/."
   docker push quay.io/mateuszdyminski/web
-  docker kill "$containerId"
-  docker rm "$containerId"
   set +e
   echo "Web pushed to quay.io!"
 }
@@ -126,14 +118,19 @@ pushWeb() {
 pushNsqd() {
   echo "Pushing Nsqd container started..."
   set -e
-  docker build -t quay.io/mateuszdyminski/nsq:"$VERSION" "$PWD/nsq-confd/."
-  containerId=$(docker run -d quay.io/mateuszdyminski/nsq:"$VERSION")
-  docker commit "$containerId" quay.io/mateuszdyminski/nsq
+  docker build -t quay.io/mateuszdyminski/nsq:latest "$PWD/nsq-confd/."
   docker push quay.io/mateuszdyminski/nsq
-  docker kill "$containerId"
-  docker rm "$containerId"
   set +e
   echo "Nsq pushed to quay.io!"
+}
+
+pushLb() {
+  echo "Pushing nginx lb container started..."
+  set -e
+  docker build -t quay.io/mateuszdyminski/nginx_lb:latest "$PWD/nginx-lb/."
+  docker push quay.io/mateuszdyminski/nginx_lb
+  set +e
+  echo "Nginx lb pushed to quay.io!"
 }
 
 CMD="$1"
@@ -148,7 +145,8 @@ case "$CMD" in
   ;;
   backend)
     buildBackend
-    exec "$PWD/backend/bin/backend" --p="8090" --nsqLookupd="127.0.0.1:4161"
+    echo "NsqlookupdAddresses = [\"127.0.0.1:4161\"]" > /tmp/backend.toml
+    exec "$PWD/backend/bin/backend" --p="8090" --config="/tmp/backend.toml"
   ;;
   web)
     buildWeb
@@ -177,6 +175,16 @@ case "$CMD" in
   ;;
   pushNsqd)
     pushNsqd
+  ;;
+  pushLb)
+    pushLb
+  ;;
+  pushAll)
+    pushFrontend
+    pushBackend
+    pushWeb
+    pushNsqd
+    pushLb
   ;;
   *)
     usage

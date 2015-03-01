@@ -20,7 +20,7 @@ ExecStart=/bin/bash -c '\
   while true; do \
     curl -f ${COREOS_PRIVATE_IPV4}:4161/ping; \
     if [ $? -eq 0 ]; then \
-     etcdctl set /services/nsqlookupd/${COREOS_PRIVATE_IPV4} \'{"host": "%H", "ipv4_addr": "${COREOS_PRIVATE_IPV4}", "port": 4161 }\' --ttl 30; \
+     etcdctl set /services/nsqlookupd/${COREOS_PRIVATE_IPV4} \'{"host": "%H", "ipv4_addr": "${COREOS_PRIVATE_IPV4}", "port": 4160, "http_port": 4161 }\' --ttl 30; \
     else \
       etcdctl rm /services/nsqlookupd/${COREOS_PRIVATE_IPV4}; \
     fi; \

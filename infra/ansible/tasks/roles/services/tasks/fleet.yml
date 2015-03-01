@@ -1,0 +1,31 @@
+- name: Fleetctl - Destroy all instances
+  shell: fleetctl destroy /home/core/services/instances/*
+  tags:
+    - update
+    - restart-all
+    - destroy
+
+- name: Fleetctl - Destroy all templates
+  shell: fleetctl destroy /home/core/services/templates/*
+  tags:
+    - update
+    - restart-all
+    - destroy
+
+- name: Fleetctl - Submit all templates
+  shell: fleetctl submit /home/core/services/templates/*
+  tags:
+    - update
+    - restart-all
+
+- name: Fleetctl - Submit all instances
+  shell: fleetctl submit /home/core/services/instances/*
+  tags:
+    - update
+    - restart-all
+
+- name: Fleetctl - Start all instances
+  shell: fleetctl start /home/core/services/instances/*
+  tags:
+    - update
+    - restart-all

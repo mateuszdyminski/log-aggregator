@@ -1,0 +1,9 @@
+vag01 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2200 ansible_ssh_user=core ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
+vag02 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2222 ansible_ssh_user=core ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
+
+[coreos]
+vag01
+vag02
+
+[entry]
+vag01

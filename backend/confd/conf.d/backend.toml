@@ -1,0 +1,10 @@
+[template]
+src = "backend.tmpl"
+
+dest = "/etc/backend/backend.toml"
+
+keys = [ 
+    "/services/nsqlookupd" ,
+]
+
+reload_cmd="pkill backend && /usr/bin/backend --p=$PORT --config=/etc/backend/backend.toml &> /var/log/backend.log &"

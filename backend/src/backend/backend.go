@@ -3,17 +3,23 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gorilla/websocket"
 )
 
 var (
-	hostname   string
-	nsqLookupd string
-	port       int
+	hostname string
+	port     int
+	config   string
 )
+
+type Config struct {
+	NsqlookupdAddresses []string
+}
 
 func init() {
 	// Flags
@@ -22,23 +28,36 @@ func init() {
 	}
 
 	flag.StringVar(&hostname, "h", "localhost", "hostname")
-	flag.StringVar(&nsqLookupd, "nsqLookupd", "127.0.0.1:4161", "nsqLookupd host")
+	flag.StringVar(&config, "config", "backend.toml", "config path")
 	flag.IntVar(&port, "p", 8090, "port")
 }
 
 func main() {
 	flag.Parse()
 
-	fmt.Printf("NsqLookupd: %s\n", nsqLookupd)
+	fmt.Printf("Config path: %s\n", config)
+
+	bytes, err := ioutil.ReadFile(config)
+	if err != nil {
+		panic("Can't open config file!")
+	}
+
+	var conf Config
+	if err = toml.Unmarshal(bytes, &conf); err != nil {
+		panic("Can't decode config file!")
+	}
+
+	fmt.Printf("Config: %v\n", conf)
 
 	// run websocket hub
 	go h.run()
 
-	go client.run(&h, nsqLookupd)
+	go client.run(&h, conf.NsqlookupdAddresses)
 
 	http.HandleFunc("/wsapi/ws", serveWs)
+	http.HandleFunc("/health", serveHealthStatus)
 	fmt.Printf("Server started, host: %s, port: %d\n", hostname, port)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 	}
@@ -59,6 +78,11 @@ func serveWs(w http.ResponseWriter, req *http.Request) {
 	c := &connection{send: make(chan []byte, 256), ws: ws}
 	h.register <- c
 	go c.writePump()
+}
+
+// serveHealthStatus returns if server is up.
+func serveHealthStatus(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "OK")
 }
 
 const (

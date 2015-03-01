@@ -1,0 +1,4 @@
+- hosts: entry
+  gather_facts: False
+  roles:
+    - services

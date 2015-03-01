@@ -1,0 +1,1 @@
+NsqlookupdAddresses = [{{range gets "/services/nsqlookupd/*"}}{{$data := json .Value}}"{{$data.ipv4_addr}}:{{$data.http_port}}",{{end}}]

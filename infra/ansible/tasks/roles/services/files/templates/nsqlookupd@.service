@@ -16,13 +16,13 @@ EnvironmentFile=/etc/environment
 
 ExecStartPre=-/usr/bin/docker kill nsqlookupd-%i
 ExecStartPre=-/usr/bin/docker rm nsqlookupd-%i
-ExecStartPre=/usr/bin/docker pull dockerfile/nsq
+ExecStartPre=/usr/bin/docker pull nsqio/nsq
 
 ExecStart=/usr/bin/docker run --name nsqlookupd-%i \
-                              -p 4160:4160 \
-                              -p 4161:4161 \
-                              dockerfile/nsq \
-                              nsqlookupd --broadcast-address=${COREOS_PRIVATE_IPV4}
+                              -p ${COREOS_PRIVATE_IPV4}:4160:4160 \
+                              -p ${COREOS_PRIVATE_IPV4}:4161:4161 \
+                              nsqio/nsq \
+                              /nsqlookupd --broadcast-address=${COREOS_PRIVATE_IPV4}
 
 ExecStop=/usr/bin/docker stop nsqlookupd-%i
 
