@@ -1,0 +1,23 @@
+#! /bin/bash
+set -eo pipefail
+
+export ETCD_PORT=${ETCD_PORT:-4001}
+export HOST_IP=${HOST_IP:-172.17.42.1}
+export ETCD=$HOST_IP:$ETCD_PORT
+
+echo "[backend] booting container. ETCD: $ETCD"
+
+until confd -onetime -node $ETCD -config-file /etc/confd/conf.d/backend.toml; do
+    echo "[backend] waiting for confd to create initial backend configuration"
+    sleep 5
+done
+
+echo "[backend] is now monitoring etcd for changes..."
+echo "" > /var/log/confd.log
+confd -interval 10 -node $ETCD -config-file /etc/confd/conf.d/backend.toml &> /var/log/confd.log &
+
+echo "[backend] starting backend..."
+echo "" > /var/log/backend.log
+/usr/bin/backend --p=$PORT --config=/etc/backend/backend.toml &> /var/log/backend.log &
+
+tail -f /var/log/*.log

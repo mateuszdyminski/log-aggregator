@@ -1,6 +1,6 @@
 # WTF?
 
-Log-aggregator shows how to aggregate logs from many diffents servers and show them in one place.   
+Log-aggregator shows how to aggregate logs from many diffent servers and show them in one place.   
 
 Project contains 3 main parts:
 
@@ -16,7 +16,7 @@ This project was created at micro-hacathlon during web-socket workshop at Avaus 
 - https://github.com/viru
 - https://github.com/mmalczewski
 
-# SETUP
+# Setup
 
 ## Requirements
 
@@ -24,8 +24,9 @@ This project was created at micro-hacathlon during web-socket workshop at Avaus 
 - DOCKER see: https://docs.docker.com/installation/
 - FIG see: http://www.fig.sh/install.html
 - ANSIBLE see: http://docs.ansible.com/intro_installation.html
+- VAGRANT see: http://docs.vagrantup.com/v2/installation/
 
-## RUN LOCAL DOCKER CLUSTER
+## Run cluster locally 
 
 ### Prepare all containers
 
@@ -49,7 +50,7 @@ Run all components as docker containers:
 fig up -d
 ```
 
-### TEST
+### Test
 
 1. Check if all 6 containers are up and running:
 
@@ -61,7 +62,7 @@ docker ps
 3. Open 2 tabs in web browser: http://127.0.0.1:8001 and http://127.0.0.1:8002
 4. Http server logs should appear in log-aggregator: http://127.0.0.1:9001 
 
-## RUN CORE OS CLUSTER - VAGRANT
+## Run CoreOS cluster - Vagrant
 
 Go to infra directory
 
@@ -95,16 +96,10 @@ When all nodes are up and running go to:
 cd infra/ansible
 ```
 
-We have to edit private key for vagrant first, open file ssh.config and change following line:
+To prepare coreOS cluster for ansible, run:
 
 ```
-IdentityFile /home/md/.vagrant.d/insecure_private_key => IdentityFile /path/to/your/vagrant/private/key
-```
-
-To prepare coreOS cluster for ansible run:
-
-```
-ansible-playbook -i hosts/vagrant-inventory tasks/roles/bootstrap.yml --tags=destroy
+ansible-playbook -i hosts/vagrant-inventory tasks/roles/bootstrap.yml
 ```
 
 Verify if eveything works fine:
@@ -124,6 +119,11 @@ To stop all services in cluster:
 ```
 ansible-playbook -i hosts/vagrant-inventory tasks/roles/services.yml --tags=destroy
 ```
+
+## Run CoreOS cluster - Digital Ocean 
+
+TBD...
+
 
 # TODO:
 

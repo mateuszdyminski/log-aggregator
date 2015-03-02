@@ -1,0 +1,23 @@
+#! /bin/bash
+set -eo pipefail
+
+export ETCD_PORT=${ETCD_PORT:-4001}
+export HOST_IP=${HOST_IP:-172.17.42.1}
+export ETCD=$HOST_IP:$ETCD_PORT
+
+echo "[nsqd] booting container. ETCD: $ETCD"
+
+until confd -onetime -node $ETCD -config-file /etc/confd/conf.d/nsqd.toml; do
+    echo "[nsqd] waiting for confd to create initial nsqd configuration"
+    sleep 5
+done
+
+echo "[nsqd] is now monitoring etcd for changes..."
+echo "" > /var/log/confd.log
+confd -interval 10 -node $ETCD -config-file /etc/confd/conf.d/nsqd.toml &> /var/log/confd.log &
+
+echo "[nsqd] starting nsqd..."
+echo "" > /var/log/nsqd.log
+nsqd --broadcast-address=$HOST_IP -config=/etc/nsq/nsqd.toml &> /var/log/nsqd.log &
+
+tail -f /var/log/*.log

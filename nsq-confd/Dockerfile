@@ -11,7 +11,7 @@ RUN \
 # configure confd
 ADD confd/bin/confd-0.7.1-linux-amd64 /usr/local/bin/confd
 ADD confd /etc/confd
-ADD bin/confd-watch-nsqd /usr/local/bin/confd-watch-nsqd
+ADD run/confd-watch-nsqd /usr/local/bin/confd-watch-nsqd
 
 RUN mkdir /etc/nsq
 RUN chmod +x /usr/local/bin/confd
